@@ -9,8 +9,6 @@
 
 
 
-#define PEEK32(addr) readl((addr)+mmio768)
-#define POKE32(addr,data) writel((data),(addr)+mmio768)
 
 
 #define peekRegisterDWord(addr) readl((addr)+mmio768)
@@ -28,8 +26,7 @@
 void ddk768_set_mmio(volatile unsigned char * addr,unsigned short devId,char revId);
 
 extern volatile unsigned  char __iomem * mmio768;
-extern char revId768;
-extern unsigned short devId768;
+
 #else
 /* implement if you want use it*/
 #endif

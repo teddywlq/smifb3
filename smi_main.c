@@ -202,10 +202,6 @@ static void smi_vram_fini(struct smi_device *cdev)
 	
 #endif
 
-	iounmap(cdev->rmmio);
-	iounmap(cdev->vram);
-	cdev->rmmio = NULL;
-	cdev->vram = NULL;
 
 }
 
@@ -289,7 +285,7 @@ int smi_device_init(struct smi_device *cdev, struct drm_device *ddev, struct pci
 	/* BAR 0 is the framebuffer, BAR 1 contains registers */
 	cdev->rmmio_base = pci_resource_start(pdev, 1);
 	cdev->rmmio_size = pci_resource_len(pdev, 1);
-	cdev->rmmio = ioremap(cdev->rmmio_base, cdev->rmmio_size);
+	cdev->rmmio = devm_ioremap(cdev->dev->dev, cdev->rmmio_base, cdev->rmmio_size);
 
 	if (cdev->rmmio == NULL)
 		return -ENOMEM;

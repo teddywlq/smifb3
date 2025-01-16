@@ -5,7 +5,9 @@
 #include <linux/console.h>
 #include <linux/module.h>
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 2, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0)
+#include <drm/drm_fbdev_ttm.h>
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(6, 2, 0)
 #include <drm/drm_fbdev_generic.h>
 #endif
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 3, 0)
@@ -245,10 +247,11 @@ malloc_failed:
 
 static void smi_vram_resume(struct smi_device *sdev,int vram_size)
 {
-
-	memcpy_toio(sdev->vram, sdev->vram_save, vram_size << 20);
-	kvfree(sdev->vram_save); 		
-	sdev->vram_save = NULL; 	
+	if (sdev->vram_save) {		
+		memcpy_toio(sdev->vram, sdev->vram_save, vram_size << 20);
+		kvfree(sdev->vram_save); 		
+		sdev->vram_save = NULL; 
+	}
 }
 
 
@@ -549,14 +552,12 @@ static struct drm_driver driver = {
 static int __init smi_init(void)
 {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 17, 0)
-        if (drm_firmware_drivers_only() && smi_modeset == -1)
+        if (drm_firmware_drivers_only() || !smi_modeset)
 #else
-        if (vgacon_text_force() && smi_modeset == -1)
+        if (vgacon_text_force() || !smi_modeset)
 #endif
-		return -EINVAL;
+		return -ENODEV;
 
-	if (smi_modeset == 0)
-		return -EINVAL;
 	return pci_register_driver(&smi_pci_driver);
 }
 
